@@ -1,0 +1,10 @@
+{
+  "name": "rekcha-hob",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.js",
+    "check": "node scripts/check.js"
+  }
+}

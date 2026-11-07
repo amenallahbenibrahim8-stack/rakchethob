@@ -1,0 +1,13 @@
+{
+  "name": "ركشة حب",
+  "short_name": "ركشة حب",
+  "description": "مساحة صغيرة ليكم، فيها أسئلة، ضحك وذكريات.",
+  "start_url": "./dashboard.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111014",
+  "theme_color": "#111014",
+  "icons": [
+    { "src": "./assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

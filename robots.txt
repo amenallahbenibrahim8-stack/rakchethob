@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard.html
+Disallow: /couple.html
+Disallow: /games.html
+Disallow: /game.html
+Disallow: /memories.html
+Disallow: /dates.html
+Disallow: /settings.html
+Disallow: /onboarding.html
+Disallow: /login.html
+Disallow: /signup.html
+Disallow: /forgot-password.html
+Sitemap: https://example.com/sitemap.xml
