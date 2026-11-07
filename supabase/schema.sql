@@ -277,7 +277,7 @@ create trigger on_auth_user_created_profile
   for each row execute function public.create_profile_for_new_user();
 
 create or replace function public.create_couple(p_name text, p_theme text default 'midnight')
-returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
+returns jsonb language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare
   new_couple_id uuid;
   new_code text;
@@ -339,7 +339,7 @@ end;
 $$;
 
 create or replace function public.get_couple_invitation(p_couple_id uuid)
-returns text language plpgsql security definer set search_path = public, pg_temp as $$
+returns text language plpgsql security definer set search_path = public, extensions, pg_temp as $$
 declare result text;
         new_code text;
         alphabet constant text := '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';

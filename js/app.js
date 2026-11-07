@@ -3,7 +3,7 @@ import { escapeHtml, friendlyError, imageUrl, renderIcons, toast } from "./utils
 import { setState } from "./state.js";
 import { renderDashboard } from "./dashboard.js";
 import { renderCouple, renderOnboarding } from "./couple.js";
-import { renderGames, renderGame } from "./games.js";
+import { renderRoomGame } from "./room-game.js";
 import { renderMemories } from "./memories.js";
 import { renderDates } from "./dates.js";
 import { renderSettings } from "./settings.js";
@@ -132,6 +132,20 @@ function startPresence(context) {
 }
 
 async function init() {
+  if (page === "games" || page === "game") {
+    if (!hasSupabaseConfig) {
+      root.innerHTML = `<main class="party-shell party-entry"><section class="party-panel party-reconnect">
+        <h1>اللعبة موش مربوطة</h1>
+        <p>زيد Supabase URL والـ publishable key في <code>js/config.js</code> باش تبدأوا.</p>
+      </section></main>`;
+      return;
+    }
+    await renderRoomGame(root, supabase);
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker.register("./sw.js").catch(() => toast("الخدمة من غير إنترنت موش متاحة توا.", "error"));
+    }
+    return;
+  }
   if (!hasSupabaseConfig) return configError();
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   if (sessionError) throw sessionError;
@@ -173,10 +187,6 @@ async function init() {
     await renderDashboard(content, context);
   } else if (page === "couple") {
     await renderCouple(content, context);
-  } else if (page === "games") {
-    await renderGames(content, context);
-  } else if (page === "game") {
-    await renderGame(content, context);
   } else if (page === "memories") {
     await renderMemories(content, context);
   } else if (page === "dates") {
@@ -190,10 +200,18 @@ async function init() {
   }
 }
 
-supabase?.auth.onAuthStateChange((event) => {
-  if (event === "SIGNED_OUT" && !location.pathname.endsWith("index.html")) location.assign("./login.html");
-});
+if (page !== "games" && page !== "game") {
+  supabase?.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_OUT" && !location.pathname.endsWith("index.html")) location.assign("./login.html");
+  });
+}
 init().catch((error) => {
   console.error("ركشة حب ما نجمتش تفتح الصفحة.", error);
-  root.innerHTML = `<section class="form-card"><div class="form-error visible" role="alert">${escapeHtml(friendlyError(error))}</div><a class="button button-outline" href="./dashboard.html">عاود جرّب</a></section>`;
+  root.innerHTML = page === "games" || page === "game"
+    ? `<main class="party-shell party-entry"><section class="party-panel party-reconnect">
+        <h1>ما نجموش نفتحوا اللعبة</h1>
+        <p role="alert">${escapeHtml(friendlyError(error))}</p>
+        <a class="button button-outline party-action" href="./game.html">عاود جرّب</a>
+      </section></main>`
+    : `<section class="form-card"><div class="form-error visible" role="alert">${escapeHtml(friendlyError(error))}</div><a class="button button-outline" href="./dashboard.html">عاود جرّب</a></section>`;
 });

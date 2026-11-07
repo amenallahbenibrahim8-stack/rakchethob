@@ -30,6 +30,38 @@ if (!migration.includes("'answers', case when answer_count = 2 then")) {
   issues.push("The daily-question RPC must reveal answers only after both partners answer.");
 }
 
+const turnEnginePath = path.join(root, "supabase", "migrations", "202611070003_single_turn_game_engine.sql");
+const turnEngine = await readFile(turnEnginePath, "utf8");
+const roomGame = await readFile(path.join(root, "js", "room-game.js"), "utf8");
+const gameEngine = await readFile(path.join(root, "js", "game-engine.js"), "utf8");
+if ((turnEngine.match(/select 10::smallint/g) || []).length !== 1) {
+  issues.push("The database game engine must define its round limit once.");
+}
+for (const required of [
+  "unique index if not exists game_rounds_session_round_turn_idx",
+  "session_row.current_turn = 1",
+  "session_row.current_round < session_row.total_rounds",
+  "session_row.current_turn = 2 and session_row.current_round = session_row.total_rounds",
+  "'answers', case when turn_row.status = 'revealed' then",
+  "revoke execute on function public.advance_game_round(uuid)"
+]) {
+  if (!turnEngine.includes(required)) issues.push(`The single-turn game migration is missing: ${required}`);
+}
+for (const rpc of [
+  "create_room", "join_room", "start_room_game", "get_room_game_state",
+  "ask_room_game_question", "submit_room_game_answer", "reveal_room_game_turn", "advance_room_game_turn"
+]) {
+  if (!gameEngine.includes(`"${rpc}"`)) issues.push(`The frontend game engine is missing the ${rpc} RPC.`);
+}
+for (const event of ["QUESTION_SENT", "ANSWER_SUBMITTED", "REVEAL_READY", "REVEAL_SHOWN", "TURN_CHANGED", "ROUND_COMPLETED", "GAME_FINISHED"]) {
+  if (!gameEngine.includes(`"${event}"`) || !turnEngine.includes(`'${event}'`)) {
+    issues.push(`The ${event} event must be shared by the client and database game engines.`);
+  }
+}
+if (roomGame.includes("advance_game_round") || roomGame.includes("submit_turn_game_answer")) {
+  issues.push("The room UI must not call the legacy round/turn engine.");
+}
+
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
